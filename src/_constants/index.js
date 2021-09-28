@@ -23,3 +23,5 @@ export const API_ENDPOINT_URI = process.env.REACT_APP_API_ENDPOINT_URI;
 export const API_TOKEN = process.env.REACT_APP_API_TOKEN;
 
 export const LOAD_LIST_ITEMS = 15;
+
+export const POSTS_FILTERS = ['Коты', 'Еда', 'Места'];
