@@ -1,40 +1,40 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 
 import { CircularProgress } from '@material-ui/core';
 
 import { APP_BOTTOM_NAVIGATION, LOAD_LIST_ITEMS } from '_constants';
-import { postsSelector } from '_layers/dataSelectors';
-import { usePostsList } from '_layers/gql/hooks';
+import { FilterContext } from '_layers/contexts/FilterProvider';
+import { postsSelector, tagsSelector } from '_layers/dataSelectors';
+import { usePostsList, useTagsList } from '_layers/gql/hooks';
 import { BottomNavigation, FilterDialog } from '_layers/ui/components';
 import { CenterLayout, PageLayout } from '_layers/ui/layouts';
 
 import { PostsPageContent } from './PostsPage.Content';
 
 export const PostsPage = () => {
-  const [activeFilters, setActiveFilters] = useState([]);
+  const [state] = useContext(FilterContext);
   const [openFilterModal, setOpenFilterModal] = useState(false);
-  const { data, loading, fetchMore } = usePostsList({
+  const { data: postsData, loading: postsLoading, fetchMore: fetchMorePosts } = usePostsList({
     variables: {
       first: LOAD_LIST_ITEMS,
       filter: {
-        tags: { some: { OR: [...activeFilters.map(filter => ({ name: { contains: filter } }))] } },
+        tags: {
+          some: { OR: [...state.currentFilters.map(filter => ({ name: { contains: filter } }))] },
+        },
       },
     },
   });
-
-  const postsList = postsSelector.getList(data);
-  const totalCount = postsSelector.getTotalCount(data);
+  const { data: tagsData, loading: tagsLoading } = useTagsList();
+  const postsList = postsSelector.getList(postsData);
+  const totalPostsCount = postsSelector.getTotalCount(postsData);
+  const tagsList = tagsSelector.getListWithoutId(tagsData);
 
   const onEndReached = () => {
-    fetchMore({
+    fetchMorePosts({
       variables: {
         skip: postsList.length,
       },
     });
-  };
-
-  const getFilters = filters => {
-    setActiveFilters(filters);
   };
 
   return (
@@ -44,22 +44,21 @@ export const PostsPage = () => {
           <FilterDialog
             open={openFilterModal}
             setOpen={setOpenFilterModal}
-            getFilters={getFilters}
-            currentFilters={activeFilters}
-            disabled={loading}
+            tagsList={tagsList}
+            disabled={tagsLoading}
           />
         </CenterLayout>
       }
       content={
         <>
-          {loading ? (
+          {postsLoading ? (
             <CenterLayout>
               <CircularProgress />
             </CenterLayout>
           ) : (
             <PostsPageContent
               postsList={postsList}
-              totalCount={totalCount}
+              totalCount={totalPostsCount}
               onEndReached={onEndReached}
             />
           )}

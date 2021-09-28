@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, useContext } from 'react';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -12,22 +12,22 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import CloseIcon from '@material-ui/icons/Close';
 
-import { POSTS_FILTERS } from '_constants';
+import { FilterContext } from '_layers/contexts/FilterProvider';
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export const FilterDialog = ({ open, setOpen, getFilters, currentFilters, disabled }) => {
-  const [filters, setFilters] = useState(currentFilters || []);
+export const FilterDialog = ({ open, setOpen, tagsList, disabled }) => {
+  const [state, dispatch] = useContext(FilterContext);
+  const [filters, setFilters] = useState(state.currentFilters);
   const handleClickOpen = () => {
     setOpen(true);
-    setFilters(currentFilters);
+    setFilters(state.currentFilters);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setFilters(currentFilters);
   };
 
   const handleChangeFilters = event => {
@@ -40,7 +40,7 @@ export const FilterDialog = ({ open, setOpen, getFilters, currentFilters, disabl
 
   const handleSubmitFilters = event => {
     event.preventDefault();
-    getFilters(filters);
+    dispatch({ type: 'setCurrentFilters', payload: filters });
     handleClose();
   };
 
@@ -63,26 +63,30 @@ export const FilterDialog = ({ open, setOpen, getFilters, currentFilters, disabl
             </Button>
           </Toolbar>
         </AppBar>
-        <FormControl
-          style={{ padding: '5px 20px' }}
-          onSubmit={handleSubmitFilters}
-          component="fieldset"
-          variant="standard"
-        >
-          {POSTS_FILTERS.map(filterLabel => (
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={filters.some(filter => filter === filterLabel)}
-                  onChange={handleChangeFilters}
-                  name={filterLabel}
-                />
-              }
-              label={filterLabel}
-              key={filterLabel}
-            />
-          ))}
-        </FormControl>
+        {tagsList.length > 0 ? (
+          <FormControl
+            style={{ padding: '5px 20px' }}
+            onSubmit={handleSubmitFilters}
+            component="fieldset"
+            variant="standard"
+          >
+            {tagsList.map(filterLabel => (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={filters.some(filter => filter === filterLabel)}
+                    onChange={handleChangeFilters}
+                    name={filterLabel}
+                  />
+                }
+                label={filterLabel}
+                key={filterLabel}
+              />
+            ))}
+          </FormControl>
+        ) : (
+          <div>No filters</div>
+        )}
       </Dialog>
     </>
   );
