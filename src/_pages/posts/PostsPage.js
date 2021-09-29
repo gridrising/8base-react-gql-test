@@ -3,7 +3,7 @@ import { useState, useContext } from 'react';
 import { CircularProgress } from '@material-ui/core';
 
 import { APP_BOTTOM_NAVIGATION, LOAD_LIST_ITEMS } from '_constants';
-import { FilterContext } from '_layers/contexts/FilterProvider';
+import { FilterContext } from '_layers/contexts/FilterContextProvider';
 import { postsSelector, tagsSelector } from '_layers/dataSelectors';
 import { usePostsList, useTagsList } from '_layers/gql/hooks';
 import { BottomNavigation, FilterDialog } from '_layers/ui/components';
@@ -12,14 +12,18 @@ import { CenterLayout, PageLayout } from '_layers/ui/layouts';
 import { PostsPageContent } from './PostsPage.Content';
 
 export const PostsPage = () => {
-  const [state] = useContext(FilterContext);
+  const [filterContextState] = useContext(FilterContext);
   const [openFilterModal, setOpenFilterModal] = useState(false);
   const { data: postsData, loading: postsLoading, fetchMore: fetchMorePosts } = usePostsList({
     variables: {
       first: LOAD_LIST_ITEMS,
       filter: {
         tags: {
-          some: { OR: [...state.currentFilters.map(filter => ({ name: { contains: filter } }))] },
+          some: {
+            OR: [
+              ...filterContextState.currentFilters.map(filter => ({ name: { contains: filter } })),
+            ],
+          },
         },
       },
     },

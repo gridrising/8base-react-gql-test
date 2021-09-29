@@ -12,18 +12,18 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import CloseIcon from '@material-ui/icons/Close';
 
-import { FilterContext } from '_layers/contexts/FilterProvider';
+import { FilterContext } from '_layers/contexts/FilterContextProvider';
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 export const FilterDialog = ({ open, setOpen, tagsList, disabled }) => {
-  const [state, dispatch] = useContext(FilterContext);
-  const [filters, setFilters] = useState(state.currentFilters);
+  const [filterContextState, dispatch] = useContext(FilterContext);
+  const [filters, setFilters] = useState(filterContextState.currentFilters);
   const handleClickOpen = () => {
     setOpen(true);
-    setFilters(state.currentFilters);
+    setFilters(filterContextState.currentFilters);
   };
 
   const handleClose = () => {
